@@ -17,6 +17,7 @@ pipeline {
 
         stage('Run Container') {
             steps {
+                bat 'docker rm -f inventory-container || ver > nul'
                 bat 'docker run -d -p 8000:8000 --name inventory-container inventory-api'
             }
         }
@@ -34,11 +35,11 @@ pipeline {
         }
 
         stage('Stop Container') {
-            steps {
-                bat 'docker stop inventory-container'
-                bat 'docker rm inventory-container'
+             steps {
+                bat 'docker stop inventory-container || ver > nul'
+                bat 'docker rm inventory-container || ver > nul'
             }
-        }
+        }       
 
         stage('Create ZIP') {
             steps {
