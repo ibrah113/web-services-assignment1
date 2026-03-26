@@ -1,79 +1,61 @@
 pipeline {
     agent any
 
-    environment {
-        ZIP_NAME = "complete-${new Date().format('yyyy-MM-dd-HH-mm-ss')}.zip"
-    }
-
     stages {
 
-        stage('Start') {
+        stage('Clone Repo') {
             steps {
-                echo 'Starting Jenkins pipeline for Inventory API assignment'
+                git 'https://github.com/ibrah113/web-services-assignment1.git'
             }
         }
 
         stage('Install Newman') {
             steps {
-                bat 'npm install -g newman'
+                bat '"C:\\Program Files\\nodejs\\npm.cmd" install -g newman'
             }
         }
 
-        stage('Install Python Dependencies') {
+        stage('Build Docker Image') {
             steps {
-                bat '.\\.venv\\Scripts\\python.exe -m pip install -r requirements.txt'
+                bat 'docker build -t inventory-api .'
             }
         }
 
-        stage('Run API in Background') {
+        stage('Run Container') {
             steps {
-                bat 'start /b .\\.venv\\Scripts\\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000'
-                bat 'timeout /t 8'
+                bat 'docker run -d -p 8000:8000 --name inventory-container inventory-api'
             }
         }
 
-        stage('Run Newman Tests') {
+        stage('Wait for API') {
             steps {
-                bat 'newman run .\\postman\\inventory_api_tests.postman_collection.json'
+                bat 'timeout /t 10'
             }
         }
 
-        stage('Generate README') {
+        stage('Run Tests (Newman)') {
             steps {
-                bat '''
-                (
-                echo Inventory Management API Endpoints
-                echo.
-                echo /getSingleProduct?product_id=INTEGER
-                echo /getAll
-                echo /addNew  ^(POST JSON body: ProductID, Name, UnitPrice, StockQuantity, Description^)
-                echo /deleteOne?product_id=INTEGER
-                echo /startsWith?letter=CHARACTER
-                echo /paginate?start_id=INTEGER^&end_id=INTEGER
-                echo /convert?product_id=INTEGER
-                echo.
-                echo FastAPI interactive docs available at /docs
-                ) > README.txt
-                '''
+                bat 'newman run postman\\inventory_api_tests.postman_collection.json'
             }
         }
 
-        stage('Create Zip Artifact') {
+        stage('Stop Container') {
             steps {
-                powershell 'Compress-Archive -Path main.py,import_csv_to_mongo.py,requirements.txt,Dockerfile,.dockerignore,Jenkinsfile,README.txt,postman,products.csv -DestinationPath $env:ZIP_NAME -Force'
+                bat 'docker stop inventory-container'
+                bat 'docker rm inventory-container'
             }
         }
 
-        stage('Archive Zip') {
+        stage('Create ZIP') {
             steps {
-                archiveArtifacts artifacts: '*.zip', fingerprint: true
+                bat 'powershell Compress-Archive -Path * -DestinationPath complete.zip -Force'
             }
         }
     }
 
     post {
         always {
-            bat 'taskkill /F /IM python.exe || exit 0'
+            bat 'taskkill /F /IM python.exe || ver > nul'
             echo 'Pipeline finished. Cleanup attempted.'
         }
     }

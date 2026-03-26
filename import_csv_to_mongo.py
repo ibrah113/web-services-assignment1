@@ -37,7 +37,7 @@ with open(csv_file_path, mode="r", encoding="utf-8-sig") as file:
             print("Reason:", e)
 
 if products:
-    collection.delete_many({})  # clears old data before reimporting
+    collection.delete_many({}) 
     collection.insert_many(products)
     print(f"{len(products)} products inserted successfully into MongoDB.")
 else:

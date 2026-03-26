@@ -157,6 +157,11 @@
                   "pm.test(\"Product added successfully\", function () {\r",
                   "    const jsonData = pm.response.json();\r",
                   "    pm.expect(jsonData.message).to.eql(\"Product added successfully\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Returned product ID matches generated ID\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.product.ProductID).to.eql(Number(pm.collectionVariables.get(\"testProductId\")));\r",
                   "});"
                 ],
                 "type": "text/javascript",
@@ -168,8 +173,9 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "const randomId = Math.floor(Date.now() / 1000);\r",
-                  "pm.collectionVariables.set(\"testProductId\", randomId);"
+                  "const randomId = Date.now() + Math.floor(Math.random() * 100000);\r",
+                  "pm.collectionVariables.set(\"testProductId\", randomId);\r",
+                  "console.log(\"Generated testProductId:\", randomId);"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -201,54 +207,6 @@
               "port": "8000",
               "path": [
                 "addNew"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"Delete success message exists\", function () {\r",
-                  "    const jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData).to.have.property(\"message\");\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://127.0.0.1:8000/deleteOne?product_id={{testProductId}}",
-              "protocol": "http",
-              "host": [
-                "127",
-                "0",
-                "0",
-                "1"
-              ],
-              "port": "8000",
-              "path": [
-                "deleteOne"
-              ],
-              "query": [
-                {
-                  "key": "product_id",
-                  "value": "{{testProductId}}"
-                }
               ]
             }
           },
@@ -406,8 +364,62 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Delete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Delete success message exists\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.have.property(\"message\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/deleteOne?product_id={{testProductId}}",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "deleteOne"
+              ],
+              "query": [
+                {
+                  "key": "product_id",
+                  "value": "{{testProductId}}"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "testProductId",
+      "value": ""
     }
   ]
 }

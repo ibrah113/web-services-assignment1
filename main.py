@@ -105,29 +105,30 @@ def get_single_product(product_id: int = Query(..., gt=0)):
 @app.post("/addNew")
 def add_new_product(product: ProductModel):
     coll = ensure_collection()
+
+    existing_product = coll.find_one({"ProductID": product.ProductID}, {"_id": 0})
+    if existing_product:
+        raise HTTPException(status_code=400, detail="ProductID already exists")
+
     try:
-        existing_product = coll.find_one({"ProductID": product.ProductID})
+        product_data = product.model_dump()
+    except AttributeError:
+        product_data = product.dict()
 
-        if existing_product:
-            raise HTTPException(status_code=400, detail="ProductID already exists")
+    coll.insert_one(product_data)
 
-        try:
-            product_data = product.model_dump()
-        except AttributeError:
-            product_data = product.dict()
-
-        coll.insert_one(product_data)
-
-        return {
-            "message": "Product added successfully",
-            "product": product_data
+    safe_response = {
+        "message": "Product added successfully",
+        "product": {
+            "ProductID": product_data["ProductID"],
+            "Name": product_data["Name"],
+            "UnitPrice": product_data["UnitPrice"],
+            "StockQuantity": product_data["StockQuantity"],
+            "Description": product_data["Description"]
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        print("addNew error:", e)
-        raise HTTPException(status_code=500, detail=f"addNew failed: {str(e)}")
+    }
 
+    return safe_response
 
 @app.delete("/deleteOne")
 def delete_one_product(product_id: int = Query(..., gt=0)):
