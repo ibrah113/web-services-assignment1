@@ -3,12 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/ibrah113/web-services-assignment1.git'
-            }
-        }
-
         stage('Install Newman') {
             steps {
                 bat '"C:\\Program Files\\nodejs\\npm.cmd" install -g newman'
