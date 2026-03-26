@@ -21,11 +21,11 @@ pipeline {
             }
         }
 
-        stage('Wait for API') {
-            steps {
-                bat 'timeout /t 10'
-            }
-        }
+     stage('Wait for API') {
+    steps {
+        powershell 'Start-Sleep -Seconds 10'
+    }
+}
 
         stage('Run Tests (Newman)') {
             steps {
